@@ -3,7 +3,7 @@ import numpy as np
 
 # Load the model
 # Download these files from OpenCV's GitHub repo or somewhere else
-threshold_conf = 0.7
+confidence_threshold = 0.7
 model = "res10_300x300_ssd_iter_140000.caffemodel"
 net = cv2.dnn.readNetFromCaffe('deploy.prototxt', model) 
 
@@ -14,7 +14,8 @@ while True:
     if not ret:
         continue
         
-    blob = cv2.dnn.blobFromImage(frame, 1.0, (300, 300), [104.0, 177.0, 123.0]) # Preprocessing for MobileNet
+    # Preprocessing for MobileNet
+    blob = cv2.dnn.blobFromImage(frame, 1.0, (300, 300), [104.0, 177.0, 123.0])
     
     net.setInput(blob)
     detections = net.forward()
@@ -24,7 +25,7 @@ while True:
 
     for i in range(detections.shape[2]): # For each detected face
         confidence = detections[0, 0, i, 2]
-        if confidence > threshold_conf: # Filter out weak detections by a threshold of 0.5
+        if confidence > confidence_threshold: # Filter out weak detections
             num_faces = num_faces + 1
             box = detections[0, 0, i, 3:7] * np.array([frame.shape[1], frame.shape[0], frame.shape[1], frame.shape[0]])
             (startX, startY, endX, endY) = box.astype("int")
@@ -35,6 +36,7 @@ while True:
     cv2.imshow('Video', frame)
 
     if num_faces > 1:
+        # Cover the whole screen if we find someone snooping
         cv2.namedWindow('2 faces!', cv2.WND_PROP_FULLSCREEN)
         cv2.setWindowProperty('2 faces!', cv2.WND_PROP_FULLSCREEN,cv2.WINDOW_FULLSCREEN)
         cv2.imshow('2 faces!', frame)
